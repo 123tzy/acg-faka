@@ -1,7 +1,6 @@
-# 使用官方 PHP 8.1 Apache 镜像（满足 PHP >= 8.0 要求）
 FROM php:8.1-apache
 
-# 安装常见的 PHP 扩展（数据库、图像处理、压缩包等）
+# 1. 安装项目所需的 PHP 扩展
 RUN apt-get update && apt-get install -y \
         libfreetype6-dev \
         libjpeg62-turbo-dev \
@@ -12,11 +11,14 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd pdo_mysql mysqli zip
 
-# 开启 Apache 伪静态模块（完美兼容自带的 .htaccess 文件）
+# 2. 开启 Apache 伪静态模块（必须开启，否则前台页面会 404）
 RUN a2enmod rewrite
 
-# 将项目代码复制到网站根目录
+# 3. 将 Apache 监听端口改为 8080（完美适配你的 Zeabur 网络设置）
+RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+
+# 4. 复制源码到网站根目录
 COPY . /var/www/html/
 
-# 设置正确的目录权限
+# 5. 赋予正确的读写权限
 RUN chown -R www-data:www-data /var/www/html/
