@@ -17,8 +17,11 @@ RUN a2enmod rewrite
 # 3. 将 Apache 监听端口改为 8080（完美适配你的 Zeabur 网络设置）
 RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
-# 4. 复制源码到网站根目录
+# 4. 【关键修复】启用 .htaccess 文件支持
+RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+# 5. 复制源码到网站根目录
 COPY . /var/www/html/
 
-# 5. 赋予正确的读写权限
+# 6. 赋予正确的读写权限
 RUN chown -R www-data:www-data /var/www/html/
